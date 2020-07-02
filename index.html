@@ -1,12 +1,48 @@
 <!DOCTYPE html>
 
-<html lang="ja">
+<html lang="ja" style="height: 100%;">
 <head>
     <meta charset="utf-8">
     <title>Snake.js</title>
 </head>
 <body>
-    <canvas id="canvas" height="600px" width="600px"></canvas>
+    <div class="canvas-area">
+        <canvas id="background" height="400px" width="400px"></canvas>
+        <canvas id="game" height="400px" width="400px"></canvas>
+    </div>
 </body>
 <script src="snake.js"></script>
+<style>
+    body {
+        height: 100%;
+    }
+    .canvas-area {
+    /**
+     * Position relative so that canvas elements
+     * inside of it will be relative to the parent
+     */
+        position: relative;
+        
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+    }
+
+    .canvas-area canvas {
+    /**
+     * Position absolute provides canvases to be able
+     * to be layered on top of each other
+     * Be sure to remember a z-index!
+     */
+        position: absolute;
+    }
+
+    canvas {
+    /**
+     * Set transparent to let any other canvases render through
+     */
+        background-color: transparent;
+    }
+</style>
 </html>
