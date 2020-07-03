@@ -1,19 +1,17 @@
 class Game {
-    CANVAS_SIDE = 400;
+    CANVAS_SIDE = 200;
     TOTAL_CELL = 20;
     CELL_SIDE = this.CANVAS_SIDE / this.TOTAL_CELL;
     P = 1;  // padding px
-    FPS = 1000 / 5 // frame per second
+    FPS = 1; // frame per second
 
-    SNAKE_COLOR = "green"
+    SNAKE_COLOR = "purple"
     FOOD_COLOR = "yellow"
     TRAIL = 4;  // initial length of snake
 
     foodX = 0;
     foodY = 0;
     snakeXY = []
-    headX = this.TOTAL_CELL / 2;
-    headY = this.TOTAL_CELL / 2;
 
     dir = { x: 1, y: 0 }
 
@@ -29,17 +27,25 @@ class Game {
 
             // render first snake
             this.ctx.fillStyle = this.SNAKE_COLOR;
+
+            this.initializeSnake();
+        }
+
+        this.initializeSnake = () => {
+            // start center of canvas
+            const headX = this.TOTAL_CELL / 2 | 0;
+            const headY = this.TOTAL_CELL / 2 | 0;
             for (let i = 0; i < this.TRAIL; i++) {
-                this.ctx.fillRect(((this.headX() - (this.dir["x"] * i)) * this.CELL_SIDE) + this.P, ((this.headY() - (this.dir["y"] * i)) * this.CELL_SIDE) + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
-                this.snakeXY[i].push({ x: this.headX() - (this.dir["x"] * i), y: this.headY() - (this.dir["y"] * i) })
+                this.ctx.fillRect(((headX - (this.dir["x"] * i)) * this.CELL_SIDE) + this.P, ((headY - (this.dir["y"] * i)) * this.CELL_SIDE) + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+                this.snakeXY.push({ x: headX - (this.dir["x"] * i), y: headY - (this.dir["y"] * i) })
             }
         }
 
         this.tailX = () => {
-            return this.snakeX[this.snakeX.length - 1];
+            return this.snakeXY[this.snakeXY.length - 1]["x"];
         }
         this.tailY = () => {
-            return this.snakeY[this.snakeY.length - 1];
+            return this.snakeXY[this.snakeXY.length - 1]["y"];
         }
 
         this.headX = () => {
@@ -63,7 +69,7 @@ class Game {
         }
 
         this.run = () => {
-            window.setInterval(this.step, this.FPS)
+            window.setInterval(this.step, 1000 / this.FPS)
         }
 
         this.renderSnake = () => {
@@ -72,19 +78,20 @@ class Game {
             this.ctx.clearRect(this.tailX() * this.CELL_SIDE + this.P, this.tailY() * this.CELL_SIDE + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
         }
 
-        this.move = (i, px, py) => {
-            if (i === this.snakeXY.length - 1) {
-                return;
+        this.move = () => {
+            for (let i = 0; i < this.snakeXY.length - 1; i++) {
+                if (i === 0) {
+                    this.snakeXY[0] = { x: this.headX() + this.dir["x"], y: this.headY() + this.dir["y"] };
+                    console.log(this.snakeXY[0])
+                } else {
+                    this.snakeXY[i + 1] = this.snakeXY[i];
+                    console.log(this.snakeXY[i])
+                }
             }
-            const x = this.snakeXY[i]["x"];
-            const y = this.snakeXY[i]["y"];
-            this.snakeXY[i + 1].push({ x: px, y: py });
-            i++
-            this.move(i, x, y)
         }
 
         this.step = () => {
-            this.move(0, this.headX(), this.headY());
+            this.move();
             if (this.headX() === this.foodX && this.headY() === this.foodY) {
                 this.eat();
             }
@@ -133,3 +140,4 @@ const getRandomIntArbitrary = (min, max) => {
 const game = new Game();
 document.addEventListener("keydown", game.controller, false);
 game.setup();
+game.run();
