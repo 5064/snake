@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 
 <html lang="ja" style="height: 100%;">
+
 <head>
     <meta charset="utf-8">
     <title>Snake.js</title>
 </head>
+
 <body>
     <div class="canvas-area">
+        <span>SCORE</span><span id="score">0</span>
+        <canvas id="outer-frame" height="500px" width="440px"></canvas>
         <canvas id="background" height="400px" width="400px"></canvas>
         <canvas id="game" height="400px" width="400px"></canvas>
     </div>
@@ -16,13 +20,14 @@
     body {
         height: 100%;
     }
+
     .canvas-area {
-    /**
+        /**
      * Position relative so that canvas elements
      * inside of it will be relative to the parent
      */
         position: relative;
-        
+
         display: flex;
         justify-content: center;
         align-items: center;
@@ -30,7 +35,7 @@
     }
 
     .canvas-area canvas {
-    /**
+        /**
      * Position absolute provides canvases to be able
      * to be layered on top of each other
      * Be sure to remember a z-index!
@@ -39,10 +44,11 @@
     }
 
     canvas {
-    /**
+        /**
      * Set transparent to let any other canvases render through
      */
         background-color: transparent;
     }
 </style>
+
 </html>
