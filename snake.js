@@ -1,9 +1,9 @@
 class Game {
     BOX_SIDE = 600;
-    TOTAL_CELL = 14;
+    TOTAL_CELL = 12;
     CELL_SIDE = this.BOX_SIDE / this.TOTAL_CELL;
-    P = 1;  // padding px
-    FPS = 5; // frame per second
+    P = 1;  // padding between cell (px) 
+    FPS = 1; // frame per second
 
     score = 0;
 
@@ -12,7 +12,7 @@ class Game {
     FOOD_OUTLINE_COLOR = "maroon"
     FOOD_HIGHLIGHT_COLOR = "hotpink"
 
-    INITIAL_LENGTH = 7;  // initial length of snake
+    INITIAL_LENGTH = 4;  // initial length of snake
 
     food = { x: 0, y: 0 }
     snakeXY = []
@@ -27,8 +27,8 @@ class Game {
         this.setup = () => {
             document.addEventListener("keydown", this.controller, false);
 
-            this.renderBackGround();
             // this.renderOuterFrame();
+            this.renderBackGround();
 
             this.initializeSnake();
 
@@ -54,11 +54,10 @@ class Game {
             // start center of the box
             const headX = this.TOTAL_CELL / 2 | 0;
             const headY = this.TOTAL_CELL / 2 | 0;
-            this.ctx.fillStyle = this.SNAKE_COLOR;
             for (let i = 0; i < this.INITIAL_LENGTH; i++) {
-                this.ctx.fillRect(((headX - (this.dir["x"] * i)) * this.CELL_SIDE) + this.P, ((headY - (this.dir["y"] * i)) * this.CELL_SIDE) + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
                 this.snakeXY.push({ x: headX - (this.dir["x"] * i), y: headY - (this.dir["y"] * i) })
             }
+            this.renderSnake()
         }
 
         this.shuffleFoodXY = () => {
@@ -173,18 +172,10 @@ class Game {
         }
 
         this.eat = () => {
-            this.ctx.clearRect(this.food["x"] + this.P, this.food["y"] + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
-            this.snakeXY.push({ x: this.food["x"], y: this.food["y"] });
+            this.snakeXY.push({ x: this.snakeX[this.snakeXY.length - 1], y: this.snakeY[this.snakeXY.length - 1] }); // おしりが伸びます
             this.incrementScore()
             this.shuffleFoodXY();
         }
-
-        this.main = () => {
-            game.setup();
-            this.intervalId = window.setInterval(this.step, 1000 / this.FPS)
-        }
-
-
 
         this.move = () => {
             this.snakeXY.unshift({ x: this.headX() + this.dir["x"], y: this.headY() + this.dir["y"] });
@@ -243,6 +234,11 @@ class Game {
                 default:
                     break;
             }
+        }
+
+        this.main = () => {
+            game.setup();
+            this.intervalId = window.setInterval(this.step, 1000 / this.FPS)
         }
     }
 }
