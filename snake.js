@@ -1,20 +1,23 @@
 class Game {
-    BOX_SIDE = 400;
+    BOX_SIDE = 600;
     TOTAL_CELL = 14;
     CELL_SIDE = this.BOX_SIDE / this.TOTAL_CELL;
     P = 1;  // padding px
-    FPS = 5; // frame per second
+    FPS = 2; // frame per second
 
     score = 0;
 
     SNAKE_COLOR = "steelblue"
     FOOD_COLOR = "deeppink"
-    INITIAL_LENGTH = 4;  // initial length of snake
+    FOOD_OUTLINE_COLOR = "maroon"
+    FOOD_HIGHLIGHT_COLOR = "hotpink"
 
-    foodX = 0;
-    foodY = 0;
+    INITIAL_LENGTH = 11;  // initial length of snake
+
+    food = { x: 0, y: 0 }
     snakeXY = []
-    dir = { x: 1, y: 0 }
+    dir = { x: 1, y: 0, theta: 0 }
+    canChangeDir = true;
 
     ctx = document.getElementById('game').getContext("2d");
     bgCtx = document.getElementById('background').getContext("2d");
@@ -60,9 +63,9 @@ class Game {
 
         this.shuffleFoodXY = () => {
             do {
-                this.foodX = getRandomIntArbitrary(0, this.TOTAL_CELL);
-                this.foodY = getRandomIntArbitrary(0, this.TOTAL_CELL);
-            } while (this.snakeX().includes(this.foodX) && this.snakeY().includes(this.foodY));
+                this.food["x"] = getRandomIntArbitrary(0, this.TOTAL_CELL);
+                this.food["y"] = getRandomIntArbitrary(0, this.TOTAL_CELL);
+            } while (this.snakeX().includes(this.food["x"]) && this.snakeY().includes(this.food["y"]));
         }
 
         this.headX = () => {
@@ -85,18 +88,69 @@ class Game {
 
         this.renderFood = () => {
             this.ctx.fillStyle = this.FOOD_COLOR;
-            this.ctx.fillRect(this.foodX * this.CELL_SIDE + this.P, this.foodY * this.CELL_SIDE + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+            this.ctx.beginPath()
+            this.ctx.arc(this.food["x"] * this.CELL_SIDE + (this.CELL_SIDE / 2), this.food["y"] * this.CELL_SIDE + (this.CELL_SIDE / 2), this.CELL_SIDE / 3, 0, 2 * Math.PI);
+            this.ctx.fill()
+            // outline
+            this.ctx.beginPath()
+            this.ctx.strokeStyle = this.FOOD_OUTLINE_COLOR
+            this.ctx.arc(this.food["x"] * this.CELL_SIDE + (this.CELL_SIDE / 2), this.food["y"] * this.CELL_SIDE + (this.CELL_SIDE / 2), this.CELL_SIDE / 3, 0, 2 * Math.PI);
+            this.ctx.stroke()
+            this.ctx.closePath()
+            // highlight
+            this.ctx.beginPath()
+            this.ctx.fillStyle = this.FOOD_HIGHLIGHT_COLOR
+            this.ctx.arc(this.food["x"] * this.CELL_SIDE + (2 * this.CELL_SIDE / 5), this.food["y"] * this.CELL_SIDE + (2 * this.CELL_SIDE / 5), this.CELL_SIDE / 10, 0, 2 * Math.PI);
+            this.ctx.fill()
         }
 
         this.renderSnake = () => {
-            this.ctx.fillStyle = this.SNAKE_COLOR;
+            let is1st = true
             for (let snake of this.snakeXY) {
-                this.ctx.fillRect(snake["x"] * this.CELL_SIDE + this.P, snake["y"] * this.CELL_SIDE + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+                if (is1st) {
+                    // render head
+                    this.renderHead(snake)
+                    is1st = false
+                } else {
+                    // render body
+                    this.ctx.fillStyle = this.SNAKE_COLOR;
+                    this.ctx.fillRect(snake["x"] * this.CELL_SIDE + this.P, snake["y"] * this.CELL_SIDE + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+                }
             }
         }
+        this.renderHead = (head) => {
+            this.ctx.fillStyle = this.SNAKE_COLOR;
+            this.ctx.fillRect(head["x"] * this.CELL_SIDE + this.P, head["y"] * this.CELL_SIDE + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+            // eye
+            this.renderEyes()
+        }
 
-        this.isGameover = () => {
-            if (this.collisionWall() || this.collisionYourself()) {
+        this.renderEyes = () => {
+            let leftEye = { x: (-1 / 4), y: (-1 / 4) }
+            leftEye = rotatePoint(leftEye.x, leftEye.y, this.dir.theta)
+            this.ctx.beginPath()
+            this.ctx.fillStyle = "white"
+            this.ctx.arc((leftEye["x"] + (1 / 2) + this.headX()) * this.CELL_SIDE, (leftEye["y"] + (1 / 2) + this.headY()) * this.CELL_SIDE, this.CELL_SIDE / 6, 0, 2 * Math.PI);
+            this.ctx.fill()
+            this.ctx.beginPath()
+            this.ctx.fillStyle = "black"
+            this.ctx.arc((leftEye["x"] + (1 / 2) + this.headX()) * this.CELL_SIDE, (leftEye["y"] + (1 / 2) + this.headY()) * this.CELL_SIDE, this.CELL_SIDE / 10, 0, 2 * Math.PI);
+            this.ctx.fill()
+
+            let rightEye = { x: (-1 / 4), y: 1 / 4 }
+            rightEye = rotatePoint(rightEye.x, rightEye.y, this.dir.theta)
+            this.ctx.beginPath()
+            this.ctx.fillStyle = "white"
+            this.ctx.arc((rightEye["x"] + (1 / 2) + this.headX()) * this.CELL_SIDE, (rightEye["y"] + (1 / 2) + this.headY()) * this.CELL_SIDE, this.CELL_SIDE / 6, 0, 2 * Math.PI);
+            this.ctx.fill()
+            this.ctx.beginPath()
+            this.ctx.fillStyle = "black"
+            this.ctx.arc((rightEye["x"] + (1 / 2) + this.headX()) * this.CELL_SIDE, (rightEye["y"] + (1 / 2) + this.headY()) * this.CELL_SIDE, this.CELL_SIDE / 10, 0, 2 * Math.PI);
+            this.ctx.fill()
+        }
+
+        this.isGameOver = () => {
+            if (this.collisionWall() || this.collisionSelf()) {
                 return true;
             }
             return false;
@@ -109,27 +163,25 @@ class Game {
             return false;
         }
 
-        this.collisionYourself = () => {
-            const bodyX = this.snakeX();
-            const bodyY = this.snakeY();
-            bodyX.splice(0, 1);
-            bodyY.splice(0, 1);
-            if (bodyX.includes(this.headX()) && bodyY.includes(this.headY())) {
-                return true;
+        this.collisionSelf = () => {
+            for (let i = 1; i < this.snakeXY.length - 1; i++) {
+                if (this.snakeXY[i]["x"] === this.headX() && this.snakeXY[i]["y"] === this.headY()) {
+                    return true
+                }
             }
             return false;
         }
 
         this.eat = () => {
-            this.ctx.clearRect(this.foodX + this.P, this.foodY + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
-            this.snakeXY.push({ x: this.foodX, y: this.foodY });
+            this.ctx.clearRect(this.food["x"] + this.P, this.food["y"] + this.P, this.CELL_SIDE - this.P * 2, this.CELL_SIDE - this.P * 2);
+            this.snakeXY.push({ x: this.food["x"], y: this.food["y"] });
             this.incrementScore()
             this.shuffleFoodXY();
         }
 
         this.main = () => {
             game.setup();
-            this.intevalId = window.setInterval(this.step, 1000 / this.FPS)
+            this.intervalId = window.setInterval(this.step, 1000 / this.FPS)
         }
 
 
@@ -143,11 +195,12 @@ class Game {
             this.ctx.clearRect(0, 0, this.BOX_SIDE, this.BOX_SIDE)
 
             this.move();
-            if (this.isGameover()) {
-                clearInterval(this.intevalId);
+            this.canChangeDir = true;
+            if (this.isGameOver()) {
+                clearInterval(this.intervalId);
                 return;
             }
-            if (this.headX() === this.foodX && this.headY() === this.foodY) {
+            if (this.headX() === this.food["x"] && this.headY() === this.food["y"]) {
                 this.eat();
             }
             this.renderFood();
@@ -160,27 +213,31 @@ class Game {
         }
 
         this.changeDir = (target) => {
+            if (!this.canChangeDir) {
+                return;
+            }
             if (this.dir["x"] * -1 === target["x"] && this.dir["y"] * -1 === target["y"]) {
                 // 正反対には方向転換できない
                 return;
             }
             this.dir = target
+            this.canChangeDir = false;
         }
 
         this.controller = event => {
             switch (event.key) {
                 // WASD change direction
                 case "w":
-                    this.changeDir({ x: 0, y: -1 })
+                    this.changeDir({ x: 0, y: -1, theta: 3 * Math.PI / 2 })
                     break;
                 case "a":
-                    this.changeDir({ x: -1, y: 0 })
+                    this.changeDir({ x: -1, y: 0, theta: Math.PI })
                     break;
                 case "s":
-                    this.changeDir({ x: 0, y: 1 })
+                    this.changeDir({ x: 0, y: 1, theta: Math.PI / 2 })
                     break;
                 case "d":
-                    this.changeDir({ x: 1, y: 0 })
+                    this.changeDir({ x: 1, y: 0, theta: 0 })
                     break;
 
                 default:
@@ -192,6 +249,10 @@ class Game {
 
 const getRandomIntArbitrary = (min, max) => {
     return Math.floor(Math.random() * Math.floor(max - min) + min);
+}
+
+const rotatePoint = (x, y, theta) => {
+    return { x: x * Math.cos(theta) - y * Math.sin(theta), y: x * Math.sin(theta) + y * Math.cos(theta) }
 }
 
 const game = new Game();
