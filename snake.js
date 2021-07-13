@@ -3,7 +3,7 @@ class Game {
     TOTAL_CELL = 14;
     CELL_SIDE = this.BOX_SIDE / this.TOTAL_CELL;
     P = 1;  // padding px
-    FPS = 2; // frame per second
+    FPS = 5; // frame per second
 
     score = 0;
 
@@ -12,7 +12,7 @@ class Game {
     FOOD_OUTLINE_COLOR = "maroon"
     FOOD_HIGHLIGHT_COLOR = "hotpink"
 
-    INITIAL_LENGTH = 11;  // initial length of snake
+    INITIAL_LENGTH = 7;  // initial length of snake
 
     food = { x: 0, y: 0 }
     snakeXY = []
@@ -164,7 +164,7 @@ class Game {
         }
 
         this.collisionSelf = () => {
-            for (let i = 1; i < this.snakeXY.length - 1; i++) {
+            for (let i = 1; i < this.snakeXY.length; i++) {
                 if (this.snakeXY[i]["x"] === this.headX() && this.snakeXY[i]["y"] === this.headY()) {
                     return true
                 }
