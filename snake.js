@@ -3,7 +3,8 @@ class Game {
     TOTAL_CELL = 12;
     CELL_SIDE = this.BOX_SIDE / this.TOTAL_CELL;
     P = 1;  // padding between cell (px) 
-    FPS = 1; // frame per second
+    FPS = 6; // frame per second
+    intervalId = 0;
 
     score = 0;
 
@@ -24,9 +25,32 @@ class Game {
     ofCtx = document.getElementById('outer-frame').getContext("2d");
 
     constructor() {
-        this.setup = () => {
-            document.addEventListener("keydown", this.controller, false);
+        this.controller = event => {
+            switch (event.key) {
+                // WASD change direction
+                case "w":
+                    this.changeDir({ x: 0, y: -1, theta: 3 * Math.PI / 2 })
+                    break;
+                case "a":
+                    this.changeDir({ x: -1, y: 0, theta: Math.PI })
+                    break;
+                case "s":
+                    this.changeDir({ x: 0, y: 1, theta: Math.PI / 2 })
+                    break;
+                case "d":
+                    this.changeDir({ x: 1, y: 0, theta: 0 })
+                    break;
+                // Restart game
+                case "r":
+                    this.main();
+                    break;
 
+                default:
+                    break;
+            }
+        }
+        document.addEventListener("keydown", this.controller, false);
+        this.setup = () => {
             // this.renderOuterFrame();
             this.renderBackGround();
 
@@ -54,6 +78,7 @@ class Game {
             // start center of the box
             const headX = this.TOTAL_CELL / 2 | 0;
             const headY = this.TOTAL_CELL / 2 | 0;
+            this.snakeXY = [];
             for (let i = 0; i < this.INITIAL_LENGTH; i++) {
                 this.snakeXY.push({ x: headX - (this.dir["x"] * i), y: headY - (this.dir["y"] * i) })
             }
@@ -215,29 +240,9 @@ class Game {
             this.canChangeDir = false;
         }
 
-        this.controller = event => {
-            switch (event.key) {
-                // WASD change direction
-                case "w":
-                    this.changeDir({ x: 0, y: -1, theta: 3 * Math.PI / 2 })
-                    break;
-                case "a":
-                    this.changeDir({ x: -1, y: 0, theta: Math.PI })
-                    break;
-                case "s":
-                    this.changeDir({ x: 0, y: 1, theta: Math.PI / 2 })
-                    break;
-                case "d":
-                    this.changeDir({ x: 1, y: 0, theta: 0 })
-                    break;
-
-                default:
-                    break;
-            }
-        }
-
         this.main = () => {
             game.setup();
+            clearInterval(this.intervalId);
             this.intervalId = window.setInterval(this.step, 1000 / this.FPS)
         }
     }
