@@ -1,23 +1,27 @@
 class Game {
+    // 描画関係
     BOX_SIDE = 600;
     TOTAL_CELL = 12;
     CELL_SIDE = this.BOX_SIDE / this.TOTAL_CELL;
-    P = 1;  // padding between cell (px) 
-    FPS = 6; // frame per second
-    intervalId = 0;
-
-    score = 0;
-
+    P = 1;  // padding between cell (px)
     SNAKE_COLOR = "steelblue"
     FOOD_COLOR = "deeppink"
     FOOD_OUTLINE_COLOR = "maroon"
     FOOD_HIGHLIGHT_COLOR = "hotpink"
 
+    // ゲームスピード
+    fps = 0
+    INITIAL_FPS = 4; // initial frame per step
+    timeoutId = null;
+
+    score = 0;
+
     INITIAL_LENGTH = 4;  // initial length of snake
 
     food = { x: 0, y: 0 }
     snakeXY = []
-    dir = { x: 1, y: 0, theta: 0 }
+    dir = null
+    INITIAL_DIR = { x: 1, y: 0, theta: 0 }
     canChangeDir = true;
 
     ctx = document.getElementById('game').getContext("2d");
@@ -51,6 +55,9 @@ class Game {
         }
         document.addEventListener("keydown", this.controller, false);
         this.setup = () => {
+            this.fps = this.INITIAL_FPS;
+            this.dir = this.INITIAL_DIR
+            this.score = 0;
             // this.renderOuterFrame();
             this.renderBackGround();
 
@@ -213,7 +220,7 @@ class Game {
             this.move();
             this.canChangeDir = true;
             if (this.isGameOver()) {
-                clearInterval(this.intervalId);
+                window.clearTimeout(this.timeoutId);
                 return;
             }
             if (this.headX() === this.food["x"] && this.headY() === this.food["y"]) {
@@ -240,10 +247,17 @@ class Game {
             this.canChangeDir = false;
         }
 
+        this.setDynamicTimeout = () => {
+            this.fps = this.INITIAL_FPS + this.score; // As score increase, game speed gets faster
+            this.step();
+            this.timeoutId = window.setTimeout(this.setDynamicTimeout, 1000 / this.fps)
+        }
+
         this.main = () => {
             game.setup();
-            clearInterval(this.intervalId);
-            this.intervalId = window.setInterval(this.step, 1000 / this.FPS)
+
+            window.clearTimeout(this.timeoutId);
+            this.timeoutId = window.setTimeout(this.setDynamicTimeout, 1000 / this.fps);
         }
     }
 }
